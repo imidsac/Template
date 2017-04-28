@@ -1,55 +1,8 @@
 # create .rvmrc file for rvm
 # create_file ".rvmrc", "rvm gemset use #{app_name}"
-create_file ".rvmrc", "rvm gemset use rails5"
+gemset_name = ask("Your Gemset name?")
+create_file ".rvmrc", "rvm gemset use #{gemset_name}"
 
-### add gems ###
-
-# assets
-gem 'bootstrap-sass', '~> 3.3.6'
-gem 'bootswatch-rails'
-gem 'bh', '~> 1.3.4'
-gem 'font-awesome-sass', '~> 4.5.0'
-
-# Paperclip
-gem 'paperclip', '~> 5.0.0'
-
-# Deploy
-gem 'capistrano', '~> 3.4.0'
-gem 'capistrano-rails'
-gem 'capistrano-passenger'
-gem 'capistrano-rvm'
-gem 'rvm-capistrano'
-gem 'capistrano-bundler'
-gem 'capistrano-maintenance', require: false
-
-# Auth
-gem 'devise'
-
-# Droit
-gem 'cancancan', '1.10'
-
-# Bootstrap-form
-gem 'bootstrap_form', '2.5.2'
-
-# Datatable
-gem 'jquery-datatables-rails'
-gem 'jquery-ui-rails'
-
-# PDF
-gem 'prawn', '~> 2.1.0'
-gem 'prawn-table', '~> 0.2.2'
-gem 'responders'
-gem 'arabic-letter-connector'
-# gem 'Arabic-Prawn'
-# gem 'pdfkit'
-
-# gem "rails3-generators", :group => [ :development ]
-# gem "rspec-rails", :group => [ :development, :test ]
-# gem "ffaker", :group => :test
-# gem "autotest", :group => :test
-
-# install gems
-# run 'bundle install'
 
 # copy database.yml file
 run 'cp config/database.yml config/database.example'
@@ -83,21 +36,6 @@ production:
 END
 
 rake "db:create"
-
-# generate 'simple_form:install'
-# generate 'rspec:install'
-
-
-# setup devise
-# generate "devise:install"
-# generate "devise User username:string nom:string prenom:string role:string"
-# generate "devise:views"
-# rake "db:migrate"
-
-# remove defaults files
-# remove_file 'public/index.html'
-# remove_file 'rm app/assets/images/rails.png'
-
 
 # setup git and initial commit
 after_bundle do
@@ -151,9 +89,10 @@ bower.json
 
 /.idea/
   END
-
-  git :add => "."
-  git :commit => "-a -m 'initial commit'"
+  if yes?("Do you want commit?")
+    git :add => "."
+    git :commit => "-a -m 'initial commit'"
+  end
 
   say <<-eos
   ============================================================================
