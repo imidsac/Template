@@ -1,8 +1,14 @@
 generate :controller, "welcome index"
 route "root to: 'welcome#index'"
-route "get '/:inconu' => 'welcome#inconu'"
+
+File.write("config/routes.rb",File.open("config/routes.rb",&:read).gsub("end","
+  get '/:inconu' => 'welcome#inconu'
+end
+"))
+
+
 file 'app/views/welcome/index.html.erb', <<-CODE
-  <h1>Welcome!<h1>
+  <h1>Welcome to #{app_name}!<h1>
 CODE
 
 file 'app/controllers/welcome_controller.rb', <<-CODE

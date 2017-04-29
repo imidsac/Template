@@ -3,11 +3,10 @@
 gemset_name = ask("Your Gemset name?")
 create_file ".rvmrc", "rvm gemset use #{gemset_name}"
 
-
 # copy database.yml file
 run 'cp config/database.yml config/database.example'
 
-# edit database config file
+# Edit database config file
 file 'config/database.yml', <<-END
 default: &default
   adapter: postgresql
@@ -35,6 +34,18 @@ production:
   database: #{app_name}_production
 END
 
+# Edit Secrets.yml
+File.write("config/secrets.yml",File.open("config/secrets.yml",&:read).gsub("production:
+  secret_key_base: <%= ENV[\"SECRET_KEY_BASE\"] %>","
+
+production:
+  secret_key_base: <%= ENV[\"#{app_name.upcase}_PRODUCTION_SECRET_KEY_BASE\"] %>
+staging:
+  secret_key_base: <%= ENV[\"#{app_name.upcase}_STAGING_SECRET_KEY_BASE\"] %>
+
+"))
+
+# Create db
 rake "db:create"
 
 # setup git and initial commit
