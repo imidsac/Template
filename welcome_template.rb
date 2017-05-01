@@ -1,17 +1,13 @@
 generate :controller, "welcome index"
 route "root to: 'welcome#index'"
 
-File.write("config/routes.rb",File.open("config/routes.rb",&:read).gsub("end","
+if yes?("Do you want route for /:inconnu?")
+  File.write("config/routes.rb", File.open("config/routes.rb", &:read).gsub("end", "
   get '/:inconu' => 'welcome#inconu'
 end
 "))
 
-
-file 'app/views/welcome/index.html.erb', <<-CODE
-  <h1>Welcome to #{app_name}!<h1>
-CODE
-
-file 'app/controllers/welcome_controller.rb', <<-CODE
+  file 'app/controllers/welcome_controller.rb', <<-CODE
 class WelcomeController < ApplicationController
   def index
   end
@@ -21,6 +17,12 @@ class WelcomeController < ApplicationController
     redirect_to root_path
   end
 end
+  CODE
+
+end
+
+file 'app/views/welcome/index.html.erb', <<-CODE
+  <h1>Welcome to #{app_name}!<h1>
 CODE
 
 if yes?("Do you want commit Welcome page?")
