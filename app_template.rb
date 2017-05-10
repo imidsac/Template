@@ -100,7 +100,7 @@ bower.json
 
 /.idea/
   END
-  if yes?("Do you want commit?")
+  if yes?("Do you want commit? (yes/no)")
     git :add => "."
     git :commit => "-a -m 'initial commit'"
   end
