@@ -6,27 +6,27 @@ gem 'cancancan', '1.10'
 run 'bundle install'
 
 # setup devise
-name = ask("What do you want a user to be called?")
+model = ask("What do you want a user to be called?")
 generate "devise:install"
 
-if yes?("Do you want to create db table for #{name.capitalize} ?")
-  generate "devise #{name.capitalize} username:string nom:string prenom:string role:string"
+if yes?("Do you want to create db table for #{model.capitalize} ? (yes/no)")
+  generate "devise #{model.capitalize} username:string nom:string prenom:string role:string"
   rails_command "db:migrate"
 end
 
-generate "devise:controllers #{name.pluralize}" if yes?("Do you want to create controller for #{name.pluralize} ?")
-generate "devise:views #{name.pluralize}" if yes?("Do you want to create views for #{name.pluralize} ?")
+generate "devise:controllers #{model.pluralize}" if yes?("Do you want to create controller for #{model.pluralize} ?")
+generate "devise:views #{model.pluralize}" if yes?("Do you want to create views for #{model.pluralize} ?")
 
 #environment 'config.action_mailer.default_url_options = {host: "http://yourwebsite.example.com"}', env: 'production'
 environment "config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }", env: 'development'
 
-if yes?("Do you want to edit routes for #{name.pluralize} ?")
-  File.write("config/routes.rb", File.open("config/routes.rb", &:read).gsub("devise_for :#{name.pluralize}", "devise_for :#{name.pluralize},
+if yes?("Do you want to edit routes for #{model.pluralize} ? (yes/no)")
+  File.write("config/routes.rb", File.open("config/routes.rb", &:read).gsub("devise_for :#{model.pluralize}", "devise_for :#{model.pluralize},
            controllers: {
-               registrations: '#{name.pluralize}/registrations',
-               confirmations: '#{name.pluralize}/confirmations',
-               sessions: '#{name.pluralize}/sessions',
-               passwords: '#{name.pluralize}/passwords'
+               registrations: '#{model.pluralize}/registrations',
+               confirmations: '#{model.pluralize}/confirmations',
+               sessions: '#{model.pluralize}/sessions',
+               passwords: '#{model.pluralize}/passwords'
            },
            path_names: {
                sign_up: 'register',
@@ -42,7 +42,7 @@ end
 generate "cancan:ability"
 
 # Git
-if yes?("Do you want commit Auth for #{name.pluralize} and Cancan?")
+if yes?("Do you want commit Auth for #{model.pluralize} and Cancan? (yes/no)")
   git :add => "."
-  git :commit => "-a -m 'Adding Authentication for #{name.pluralize} and Cancancan'"
+  git :commit => "-a -m 'Adding Authentication for #{model.pluralize} and Cancancan'"
 end
