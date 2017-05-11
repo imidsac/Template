@@ -1,6 +1,7 @@
 # create .rvmrc file for rvm
 # create_file ".rvmrc", "rvm gemset use #{app_name}"
-gemset_name = ask("Your Gemset name?")
+gemset_name = ask("Your Gemset name? [rails5]")
+gemset_name = "rails5" if gemset_name.blank?
 create_file ".rvmrc", "rvm gemset use #{gemset_name}"
 
 # copy database.yml file
@@ -46,7 +47,7 @@ staging:
 "))
 
 # Create db
-rake "db:create"
+rake "db:create" if yes?("Do you want to create db? (yes/no)")
 
 # setup git and initial commit
 after_bundle do
@@ -100,6 +101,64 @@ bower.json
 
 /.idea/
   END
+
+  unless dirname = File.exists?("config/recipes")
+    Dir.mkdir("config/recipes")
+
+    file "config/recipes/#{app_name}.sql", <<-END
+    END
+
+    file "config/recipes/nginx.conf", <<-END
+##
+# #{app_name.upcase}
+#
+server {
+    listen 80;
+    #server_name  somename  alias  another.alias;
+    server_name #{app_name}.com;
+
+    access_log /var/log/nginx/#{app_name}.access.log;
+    error_log /var/log/nginx/#{app_name}.error.log;
+
+    root /var/www/#{app_name}/production/current/public;
+    index index.html;
+    passenger_enabled on;
+    passenger_app_env staging;
+    client_max_body_size 10M;
+
+    error_page 503 @503;
+
+    # Return a 503 error if the maintenance page exists.
+    if (-f /var/www/#{app_name}/shared/public/system/maintenance.html) {
+      return 503;
+    }
+
+    location @503 {
+      # Serve static assets if found.
+      if (-f $request_filename) {
+        break;
+      }
+
+      # Set root to the shared directory.
+      root /var/www/#{app_name}/shared/public;
+      rewrite ^(.*)$ /system/maintenance.html break;
+    }
+}
+    END
+
+    file "config/recipes/myvars", <<-END
+export #{app_name.upcase}_PRODUCTION_SECRET_KEY_BASE=""
+export #{app_name.upcase}_STAGING_SECRET_KEY_BASE=""
+
+# SECURITY
+export DATABASE_PASSWORD=""
+export USERNAME=imidsac
+export USER=imidsac
+export STAGING_USERNAME=""
+export STAGING_PASSWORD=""
+    END
+  end
+
   if yes?("Do you want commit? (yes/no)")
     git :add => "."
     git :commit => "-a -m 'initial commit'"
