@@ -79,3 +79,158 @@ if yes?("Would you like to install Cancancan? (yes/no)")
 end
 
 ############################## End Cancancan ##############################
+
+############################## Bootstrap-sass ##############################
+if yes?("Would you like to install Bootstrap-sass? (yes/no)")
+
+  # Gems
+  gem 'bootstrap-sass', '~> 3.3.6'
+
+  # install gems
+  run 'bundle install'
+
+  # Setup
+  run 'mv app/assets/stylesheets/application.css app/assets/stylesheets/application.scss'
+  # Edit app/assets/stylesheets/application.scss
+  file 'app/assets/stylesheets/application.scss', <<-END
+// "bootstrap-sprockets" must be imported before "bootstrap" and "bootstrap/variables"
+@import "bootstrap-sprockets";
+@import "bootstrap";
+  END
+
+# Edit app/assets/javascripts/application.js
+  file 'app/assets/javascripts/application.js', <<-END
+//= require jquery
+//= require bootstrap-sprockets
+  END
+
+  # Git
+  if yes?("Do you want commit Bootstrap-sass? (yes/no)")
+    git :add => "."
+    git :commit => "-a -m 'Adding Bootstrap-sass'"
+  end
+
+  say <<-eos
+  ============================================================================
+  Your Bootstrap-sass is now available.
+  eos
+
+end
+############################## End Bootstrap-sass ##############################
+
+
+############################## Paperclip ##############################
+if yes?("Would you like to install Paperclip? (yes/no)")
+
+  # Gems
+  gem 'paperclip', '~> 5.0.0'
+
+  # install gems
+  run 'bundle install'
+
+  # Setup
+
+  # Git
+  if yes?("Do you want commit Paperclip? (yes/no)")
+    git :add => "."
+    git :commit => "-a -m 'Adding Paperclip'"
+  end
+
+  say <<-eos
+  ============================================================================
+  Your Paperclip is now available.
+  eos
+
+end
+############################## End Paperclip ##############################
+
+############################## Prawn ##############################
+if yes?("Would you like to install Prawn? (yes/no)")
+
+  # Gems
+  gem 'prawn', '~> 2.1.0'
+  gem 'prawn-table', '~> 0.2.2'
+  gem 'responders'
+  gem 'arabic-letter-connector'
+
+  # install gems
+  run 'bundle install'
+
+  # Setup
+  unless File.exists?("app/pdfs")
+    Dir.mkdir("app/pdfs")
+  end
+
+  # Git
+  if yes?("Do you want commit Prawn? (yes/no)")
+    git :add => "."
+    git :commit => "-a -m 'Adding Prawn'"
+  end
+
+  say <<-eos
+  ============================================================================
+  Your Prawn is now available.
+  eos
+
+end
+############################## End Prawn ##############################
+
+
+############################## Capistrano ##############################
+if yes?("Would you like to install Capistrano? (yes/no)")
+
+  # Gems
+  gem 'capistrano', '~> 3.4.0'
+  gem 'capistrano-rails'
+  gem 'capistrano-passenger'
+  gem 'capistrano-rvm'
+  gem 'rvm-capistrano'
+  gem 'capistrano-bundler'
+  gem 'capistrano-maintenance', require: false
+
+  # install gems
+  run 'bundle install'
+
+  # Setup
+  run 'cap install'
+
+  # copy production.rb file
+  run 'cp config/environments/production.rb config/environments/staging.rb'
+
+  # Git
+  if yes?("Do you want commit Capistrano? (yes/no)")
+    git :add => "."
+    git :commit => "-a -m 'Adding Capistrano'"
+  end
+
+  say <<-eos
+  ============================================================================
+  Your Capistrano is now available.
+  eos
+
+end
+############################## End Capistrano ##############################
+
+############################## Prawn ##############################
+if yes?("Would you like to install Whenever? (yes/no)")
+
+  # Gems
+  gem 'whenever', :require => false
+
+  # install gems
+  # Setup
+
+  # Git
+  if yes?("Do you want commit Whenever? (yes/no)")
+    git :add => "."
+    git :commit => "-a -m 'Adding Whenever'"
+  end
+
+  say <<-eos
+  ============================================================================
+  Your Whenever is now available.
+  eos
+
+end
+############################## End Prawn ##############################
+
