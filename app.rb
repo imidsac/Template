@@ -1,8 +1,23 @@
-# create .rvmrc file for rvm
-# create_file ".rvmrc", "rvm gemset use #{app_name}"
-gemset_name = ask("Your Gemset name? [rails5]")
-gemset_name = "rails5" if gemset_name.blank?
-create_file ".rvmrc", "rvm gemset use #{gemset_name}"
+run 'rvm list'
+ruby_version_name = ask("Your Ruby version? [2.4.1]")
+ruby_version_name = "2.4.1" if ruby_version_name.blank?
+create_file ".ruby-version", "#{ruby_version_name}"
+
+run "rvm #{ruby_version_name} gemset list"
+
+if yes?("Do you want to create new gemset? (yes/no)")
+  name = ask("Your new gemset name?")
+  run "rvm #{ruby_version_name} gemset create #{name}"
+end
+
+run "rvm #{ruby_version_name} gemset list"
+
+# create .ruby-gemset file for rvm
+gemset_name = ask("Your Gemset name? [rails5.1]")
+gemset_name = "rails5.1" if gemset_name.blank?
+create_file ".ruby-gemset", "#{gemset_name}"
+# install gems
+run 'bundle install'
 
 # copy database.yml file
 run 'cp config/database.yml config/database.example'
@@ -36,8 +51,8 @@ production:
 END
 
 # Edit Secrets.yml
-File.write("config/secrets.yml",File.open("config/secrets.yml",&:read).gsub("production:
-  secret_key_base: <%= ENV[\"SECRET_KEY_BASE\"] %>","
+File.write("config/secrets.yml", File.open("config/secrets.yml", &:read).gsub("production:
+  secret_key_base: <%= ENV[\"SECRET_KEY_BASE\"] %>", "
 
 production:
   secret_key_base: <%= ENV[\"#{app_name.upcase}_PRODUCTION_SECRET_KEY_BASE\"] %>
@@ -102,7 +117,7 @@ bower.json
 /.idea/
   END
 
-  unless dirname = File.exists?("config/recipes")
+  unless File.exists?("config/recipes")
     Dir.mkdir("config/recipes")
 
     file "config/recipes/#{app_name}.sql", <<-END

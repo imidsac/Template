@@ -85,6 +85,7 @@ if yes?("Would you like to install Bootstrap-sass? (yes/no)")
 
   # Gems
   gem 'bootstrap-sass', '~> 3.3.6'
+  gem 'jquery-rails' if yes?("Do you want to add jquery-rails gem to Gemfile? (yes/no)")
 
   # install gems
   run 'bundle install'
@@ -98,7 +99,7 @@ if yes?("Would you like to install Bootstrap-sass? (yes/no)")
 @import "bootstrap";
   END
 
-# Edit app/assets/javascripts/application.js
+  # Edit app/assets/javascripts/application.js
   file 'app/assets/javascripts/application.js', <<-END
 //= require jquery
 //= require bootstrap-sprockets
@@ -197,6 +198,22 @@ if yes?("Would you like to install Capistrano? (yes/no)")
   # copy production.rb file
   run 'cp config/environments/production.rb config/environments/staging.rb'
 
+  file "config/deploy/staging.rb", <<-END
+set :application, "#{app_name.upcase}_STAGING"
+server 'server-app2', user: 'imidsac', roles: %w{app db web}, :primary => true, :port => 22
+set :branch, "master"
+set :rails_env, "staging"
+set :deploy_to, "/var/www/#{app_name}/staging"
+  END
+
+  file "config/deploy/production.rb", <<-END
+set :application, "#{app_name.upcase}_PRODUCTION"
+server 'server-app2', user: 'imidsac', roles: %w{app db web}, :primary => true, :port => 22
+set :branch, "master"
+set :rails_env, "production"
+set :deploy_to, "/var/www/#{app_name}/production"
+  END
+
   # Git
   if yes?("Do you want commit Capistrano? (yes/no)")
     git :add => "."
@@ -211,14 +228,17 @@ if yes?("Would you like to install Capistrano? (yes/no)")
 end
 ############################## End Capistrano ##############################
 
-############################## Prawn ##############################
+############################## Whenever ##############################
 if yes?("Would you like to install Whenever? (yes/no)")
 
   # Gems
   gem 'whenever', :require => false
 
   # install gems
+  run 'bundle install'
+
   # Setup
+  run 'wheneverize .'
 
   # Git
   if yes?("Do you want commit Whenever? (yes/no)")
@@ -232,5 +252,5 @@ if yes?("Would you like to install Whenever? (yes/no)")
   eos
 
 end
-############################## End Prawn ##############################
+############################## End Whenever ##############################
 
