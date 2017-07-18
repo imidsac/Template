@@ -198,17 +198,47 @@ if yes?("Would you like to install Capistrano? (yes/no)")
   # copy production.rb file
   run 'cp config/environments/production.rb config/environments/staging.rb'
 
+  server_name = ask("What do you want a server to be called? [server-app2]")
+  server_port = ask("What do you want a server port to be? [2208]")
+  server_name = "server-app2" if server_name.blank?
+  server_port = 2208 if server_port.blank?
+
+  file "config/deploy.rb", <<-END
+# config valid only for current version of Capistrano
+lock '3.4.1'
+
+set :repo_url, 'git@github.com:imidsac/#{app_name}.git'
+set :stages, %w(production staging)
+
+set :linked_dirs, fetch(:linked_dirs, []).push('log', 'tmp/pids', 'tmp/cache', 'tmp/sockets', 'vendor/bundle', 'public/system')
+
+namespace :deploy do
+
+  after :restart, :clear_cache do
+    on roles(:web), in: :groups, limit: 3, wait: 10 do
+      # Here we can do anything such as:
+      # within release_path do
+      #   execute :rake, 'cache:clear'
+      # end
+    end
+  end
+
+end
+
+  END
+
+
   file "config/deploy/staging.rb", <<-END
 set :application, "#{app_name.upcase}_STAGING"
-server 'server-app2', user: 'imidsac', roles: %w{app db web}, :primary => true, :port => 22
-set :branch, "master"
+server '#{server_name}', user: 'imidsac', roles: %w{app db web}, :primary => true, :port => #{server_port}
+set :branch, "develop"
 set :rails_env, "staging"
 set :deploy_to, "/var/www/#{app_name}/staging"
   END
 
   file "config/deploy/production.rb", <<-END
 set :application, "#{app_name.upcase}_PRODUCTION"
-server 'server-app2', user: 'imidsac', roles: %w{app db web}, :primary => true, :port => 22
+server '#{server_name}', user: 'imidsac', roles: %w{app db web}, :primary => true, :port => #{server_port}
 set :branch, "master"
 set :rails_env, "production"
 set :deploy_to, "/var/www/#{app_name}/production"
