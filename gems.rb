@@ -2,6 +2,7 @@ gems_list = [
     "Devise",
     "Cancancan",
     "Bootstrap-sass",
+    "font-awesome-sass",
     "Paperclip",
     "Prawn",
     "Capistrano",
@@ -294,11 +295,43 @@ set :deploy_to, "/var/www/#{app_name}/production"
 
     end
     ############################## End Whenever ##############################
+  when 'font-awesome-sass'
+    ############################## font-awesome-sass ##############################
+    if yes?("Would you like to install font-awesome-sass? (yes/no)")
+
+      # Gems
+      gem 'font-awesome-sass', '~> 4.7.0'
+
+      # install gems
+      run 'bundle install'
+
+      # Setup
+
+      # Edit app/assets/stylesheets/application.scss
+      file 'app/assets/stylesheets/application.scss', <<-END
+@import "font-awesome-sprockets";
+@import "font-awesome";
+      END
+
+      # Git
+      if yes?("Do you want commit font-awesome-sass? (yes/no)")
+        git :add => "."
+        git :commit => "-a -m 'Adding font-awesome-sass gem'"
+      end
+
+      say <<-eos
+  ============================================================================
+  Your font-awesome-sass is now available.
+      eos
+
+    end
+    ############################## End font-awesome-sass ##############################
   else
     say <<-eos
     
   #{input} is not name of gem.
 
     eos
+
 end
 
