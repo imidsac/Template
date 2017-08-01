@@ -1,25 +1,42 @@
-############################## Devise ##############################
+gems_list = [
+    "Devise",
+    "Cancancan",
+    "Bootstrap-sass",
+    "Paperclip",
+    "Prawn",
+    "Capistrano",
+    "Whenever"
+]
 
-if yes?("Would you like to install Devise? (yes/no)")
+say <<-eos
+  #{gems_list}
+eos
 
-  # Gems
-  gem 'devise'
+input = ask("Recommend me a name of gem to install?")
 
-  # install gems
-  run 'bundle install'
+case input.downcase.to_s
+  when 'devise'
+    ############################## Devise ##############################
+    if yes?("Would you like to install Devise? (yes/no)")
 
-  # setup devise
-  model = ask("What do you want a user to be called? [user]")
-  generate "devise:install"
-  environment "config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }", env: 'development'
+      # Gems
+      gem 'devise'
 
-  model = "user" if model.blank?
-  generate "devise #{model.capitalize} username:string nom:string prenom:string role:string" if yes?("Do you want to Create table #{model.capitalize}? (yes/no)")
-  generate "devise:controllers #{model.pluralize}" if yes?("Do you want to create controller for #{model.pluralize}? (yes/no)")
-  generate "devise:views #{model.pluralize}" if yes?("Do you want to create views for #{model.pluralize}? (yes/no)")
+      # install gems
+      run 'bundle install'
 
-  if yes?("Do you want to edit routes for #{model.pluralize} ? (yes/no)")
-    File.write("config/routes.rb", File.open("config/routes.rb", &:read).gsub("devise_for :#{model.pluralize}", "devise_for :#{model.pluralize},
+      # setup devise
+      model = ask("What do you want a user to be called? [user]")
+      generate "devise:install"
+      environment "config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }", env: 'development'
+
+      model = "user" if model.blank?
+      generate "devise #{model.capitalize} username:string nom:string prenom:string role:string" if yes?("Do you want to Create table #{model.capitalize}? (yes/no)")
+      generate "devise:controllers #{model.pluralize}" if yes?("Do you want to create controller for #{model.pluralize}? (yes/no)")
+      generate "devise:views #{model.pluralize}" if yes?("Do you want to create views for #{model.pluralize}? (yes/no)")
+
+      if yes?("Do you want to edit routes for #{model.pluralize} ? (yes/no)")
+        File.write("config/routes.rb", File.open("config/routes.rb", &:read).gsub("devise_for :#{model.pluralize}", "devise_for :#{model.pluralize},
            controllers: {
                registrations: '#{model.pluralize}/registrations',
                confirmations: '#{model.pluralize}/confirmations',
@@ -34,176 +51,170 @@ if yes?("Would you like to install Devise? (yes/no)")
                confirmation: 'verification',
                unlock: 'unblock'
            }"))
-  end
+      end
 
-  # Git
-  if yes?("Do you want commit Auth for #{model.pluralize}? (yes/no)")
-    git :add => "."
-    git :commit => "-a -m 'Adding Authentication for #{model.pluralize}'"
-  end
+      # Git
+      if yes?("Do you want commit Auth for #{model.pluralize}? (yes/no)")
+        git :add => "."
+        git :commit => "-a -m 'Adding Authentication for #{model.pluralize}'"
+      end
 
-  say <<-eos
+      say <<-eos
   ============================================================================
   Your Devise is now available.
-  eos
+      eos
 
-end
+    end
+    ############################## End Devise ##############################
+  when 'cancancan'
+    ############################## Cancancan ##############################
+    if yes?("Would you like to install Cancancan? (yes/no)")
 
-############################## End Devise ##############################
+      # Gems
+      gem 'cancancan', '1.10'
 
+      # install gems
+      run 'bundle install'
 
-############################## Cancancan ##############################
+      # stup cancancan
+      generate "cancan:ability"
 
-if yes?("Would you like to install Cancancan? (yes/no)")
+      # Git
+      if yes?("Do you want commit Cancancan? (yes/no)")
+        git :add => "."
+        git :commit => "-a -m 'Adding Cancancan'"
+      end
 
-  # Gems
-  gem 'cancancan', '1.10'
-
-  # install gems
-  run 'bundle install'
-
-  # stup cancancan
-  generate "cancan:ability"
-
-  # Git
-  if yes?("Do you want commit Cancancan? (yes/no)")
-    git :add => "."
-    git :commit => "-a -m 'Adding Cancancan'"
-  end
-
-  say <<-eos
+      say <<-eos
   ============================================================================
   Your Cancancan is now available.
-  eos
+      eos
 
-end
+    end
+    ############################## End Cancancan ##############################
+  when 'bootstrap-sass'
+    ############################## Bootstrap-sass ##############################
+    if yes?("Would you like to install Bootstrap-sass? (yes/no)")
 
-############################## End Cancancan ##############################
+      # Gems
+      gem 'bootstrap-sass', '~> 3.3.6'
+      gem 'jquery-rails' if yes?("Do you want to add jquery-rails gem to Gemfile? (yes/no)")
 
-############################## Bootstrap-sass ##############################
-if yes?("Would you like to install Bootstrap-sass? (yes/no)")
+      # install gems
+      run 'bundle install'
 
-  # Gems
-  gem 'bootstrap-sass', '~> 3.3.6'
-  gem 'jquery-rails' if yes?("Do you want to add jquery-rails gem to Gemfile? (yes/no)")
-
-  # install gems
-  run 'bundle install'
-
-  # Setup
-  run 'mv app/assets/stylesheets/application.css app/assets/stylesheets/application.scss'
-  # Edit app/assets/stylesheets/application.scss
-  file 'app/assets/stylesheets/application.scss', <<-END
+      # Setup
+      run 'mv app/assets/stylesheets/application.css app/assets/stylesheets/application.scss'
+      # Edit app/assets/stylesheets/application.scss
+      file 'app/assets/stylesheets/application.scss', <<-END
 // "bootstrap-sprockets" must be imported before "bootstrap" and "bootstrap/variables"
 @import "bootstrap-sprockets";
 @import "bootstrap";
-  END
+      END
 
-  # Edit app/assets/javascripts/application.js
-  file 'app/assets/javascripts/application.js', <<-END
+      # Edit app/assets/javascripts/application.js
+      file 'app/assets/javascripts/application.js', <<-END
 //= require jquery
 //= require bootstrap-sprockets
-  END
+      END
 
-  # Git
-  if yes?("Do you want commit Bootstrap-sass? (yes/no)")
-    git :add => "."
-    git :commit => "-a -m 'Adding Bootstrap-sass'"
-  end
+      # Git
+      if yes?("Do you want commit Bootstrap-sass? (yes/no)")
+        git :add => "."
+        git :commit => "-a -m 'Adding Bootstrap-sass'"
+      end
 
-  say <<-eos
+      say <<-eos
   ============================================================================
   Your Bootstrap-sass is now available.
-  eos
+      eos
 
-end
-############################## End Bootstrap-sass ##############################
+    end
+    ############################## End Bootstrap-sass ##############################
+  when 'paperclip'
+    ############################## Paperclip ##############################
+    if yes?("Would you like to install Paperclip? (yes/no)")
 
+      # Gems
+      gem 'paperclip', '~> 5.0.0'
 
-############################## Paperclip ##############################
-if yes?("Would you like to install Paperclip? (yes/no)")
+      # install gems
+      run 'bundle install'
 
-  # Gems
-  gem 'paperclip', '~> 5.0.0'
+      # Setup
 
-  # install gems
-  run 'bundle install'
+      # Git
+      if yes?("Do you want commit Paperclip? (yes/no)")
+        git :add => "."
+        git :commit => "-a -m 'Adding Paperclip'"
+      end
 
-  # Setup
-
-  # Git
-  if yes?("Do you want commit Paperclip? (yes/no)")
-    git :add => "."
-    git :commit => "-a -m 'Adding Paperclip'"
-  end
-
-  say <<-eos
+      say <<-eos
   ============================================================================
   Your Paperclip is now available.
-  eos
+      eos
 
-end
-############################## End Paperclip ##############################
+    end
+    ############################## End Paperclip ##############################
+  when 'prawn'
+    ############################## Prawn ##############################
+    if yes?("Would you like to install Prawn? (yes/no)")
 
-############################## Prawn ##############################
-if yes?("Would you like to install Prawn? (yes/no)")
+      # Gems
+      gem 'prawn', '~> 2.1.0'
+      gem 'prawn-table', '~> 0.2.2'
+      gem 'responders'
+      gem 'arabic-letter-connector'
 
-  # Gems
-  gem 'prawn', '~> 2.1.0'
-  gem 'prawn-table', '~> 0.2.2'
-  gem 'responders'
-  gem 'arabic-letter-connector'
+      # install gems
+      run 'bundle install'
 
-  # install gems
-  run 'bundle install'
+      # Setup
+      unless File.exists?("app/pdfs")
+        Dir.mkdir("app/pdfs")
+      end
 
-  # Setup
-  unless File.exists?("app/pdfs")
-    Dir.mkdir("app/pdfs")
-  end
+      # Git
+      if yes?("Do you want commit Prawn? (yes/no)")
+        git :add => "."
+        git :commit => "-a -m 'Adding Prawn'"
+      end
 
-  # Git
-  if yes?("Do you want commit Prawn? (yes/no)")
-    git :add => "."
-    git :commit => "-a -m 'Adding Prawn'"
-  end
-
-  say <<-eos
+      say <<-eos
   ============================================================================
   Your Prawn is now available.
-  eos
+      eos
 
-end
-############################## End Prawn ##############################
+    end
+    ############################## End Prawn ##############################
+  when 'capistrano'
+    ############################## Capistrano ##############################
+    if yes?("Would you like to install Capistrano? (yes/no)")
 
+      # Gems
+      gem 'capistrano', '~> 3.4.0'
+      gem 'capistrano-rails'
+      gem 'capistrano-passenger'
+      gem 'capistrano-rvm'
+      gem 'rvm-capistrano'
+      gem 'capistrano-bundler'
+      gem 'capistrano-maintenance', require: false
 
-############################## Capistrano ##############################
-if yes?("Would you like to install Capistrano? (yes/no)")
+      # install gems
+      run 'bundle install'
 
-  # Gems
-  gem 'capistrano', '~> 3.4.0'
-  gem 'capistrano-rails'
-  gem 'capistrano-passenger'
-  gem 'capistrano-rvm'
-  gem 'rvm-capistrano'
-  gem 'capistrano-bundler'
-  gem 'capistrano-maintenance', require: false
+      # Setup
+      run 'cap install'
 
-  # install gems
-  run 'bundle install'
+      # copy production.rb file
+      run 'cp config/environments/production.rb config/environments/staging.rb'
 
-  # Setup
-  run 'cap install'
+      server_name = ask("What do you want a server to be called? [server-app2]")
+      server_port = ask("What do you want a server port to be? [2208]")
+      server_name = "server-app2" if server_name.blank?
+      server_port = 2208 if server_port.blank?
 
-  # copy production.rb file
-  run 'cp config/environments/production.rb config/environments/staging.rb'
-
-  server_name = ask("What do you want a server to be called? [server-app2]")
-  server_port = ask("What do you want a server port to be? [2208]")
-  server_name = "server-app2" if server_name.blank?
-  server_port = 2208 if server_port.blank?
-
-  file "config/deploy.rb", <<-END
+      file "config/deploy.rb", <<-END
 # config valid only for current version of Capistrano
 lock '3.4.1'
 
@@ -225,62 +236,69 @@ namespace :deploy do
 
 end
 
-  END
+      END
 
 
-  file "config/deploy/staging.rb", <<-END
+      file "config/deploy/staging.rb", <<-END
 set :application, "#{app_name.upcase}_STAGING"
 server '#{server_name}', user: 'imidsac', roles: %w{app db web}, :primary => true, :port => #{server_port}
 set :branch, "develop"
 set :rails_env, "staging"
 set :deploy_to, "/var/www/#{app_name}/staging"
-  END
+      END
 
-  file "config/deploy/production.rb", <<-END
+      file "config/deploy/production.rb", <<-END
 set :application, "#{app_name.upcase}_PRODUCTION"
 server '#{server_name}', user: 'imidsac', roles: %w{app db web}, :primary => true, :port => #{server_port}
 set :branch, "master"
 set :rails_env, "production"
 set :deploy_to, "/var/www/#{app_name}/production"
-  END
+      END
 
-  # Git
-  if yes?("Do you want commit Capistrano? (yes/no)")
-    git :add => "."
-    git :commit => "-a -m 'Adding Capistrano'"
-  end
+      # Git
+      if yes?("Do you want commit Capistrano? (yes/no)")
+        git :add => "."
+        git :commit => "-a -m 'Adding Capistrano'"
+      end
 
-  say <<-eos
+      say <<-eos
   ============================================================================
   Your Capistrano is now available.
-  eos
+      eos
 
-end
-############################## End Capistrano ##############################
+    end
+    ############################## End Capistrano ##############################
+  when 'whenever'
+    ############################## Whenever ##############################
+    if yes?("Would you like to install Whenever? (yes/no)")
 
-############################## Whenever ##############################
-if yes?("Would you like to install Whenever? (yes/no)")
+      # Gems
+      gem 'whenever', :require => false
 
-  # Gems
-  gem 'whenever', :require => false
+      # install gems
+      run 'bundle install'
 
-  # install gems
-  run 'bundle install'
+      # Setup
+      run 'wheneverize .'
 
-  # Setup
-  run 'wheneverize .'
+      # Git
+      if yes?("Do you want commit Whenever? (yes/no)")
+        git :add => "."
+        git :commit => "-a -m 'Adding Whenever'"
+      end
 
-  # Git
-  if yes?("Do you want commit Whenever? (yes/no)")
-    git :add => "."
-    git :commit => "-a -m 'Adding Whenever'"
-  end
-
-  say <<-eos
+      say <<-eos
   ============================================================================
   Your Whenever is now available.
-  eos
+      eos
 
+    end
+    ############################## End Whenever ##############################
+  else
+    say <<-eos
+    
+  #{input} is not name of gem.
+
+    eos
 end
-############################## End Whenever ##############################
 
