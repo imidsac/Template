@@ -3,6 +3,7 @@ gems_list = [
     "Cancancan",
     "Bootstrap-sass",
     "font-awesome-sass",
+    "jquery-datatables-rails",
     "Paperclip",
     "Prawn",
     "Capistrano",
@@ -10,7 +11,7 @@ gems_list = [
 ]
 
 say <<-eos
-  #{gems_list}
+#{gems_list}
 eos
 
 input = ask("Recommend me a name of gem to install?")
@@ -66,7 +67,7 @@ case input.downcase.to_s
       eos
 
     end
-    ############################## End Devise ##############################
+  ############################## End Devise ##############################
   when 'cancancan'
     ############################## Cancancan ##############################
     if yes?("Would you like to install Cancancan? (yes/no)")
@@ -92,7 +93,7 @@ case input.downcase.to_s
       eos
 
     end
-    ############################## End Cancancan ##############################
+  ############################## End Cancancan ##############################
   when 'bootstrap-sass'
     ############################## Bootstrap-sass ##############################
     if yes?("Would you like to install Bootstrap-sass? (yes/no)")
@@ -131,7 +132,7 @@ case input.downcase.to_s
       eos
 
     end
-    ############################## End Bootstrap-sass ##############################
+  ############################## End Bootstrap-sass ##############################
   when 'paperclip'
     ############################## Paperclip ##############################
     if yes?("Would you like to install Paperclip? (yes/no)")
@@ -156,7 +157,7 @@ case input.downcase.to_s
       eos
 
     end
-    ############################## End Paperclip ##############################
+  ############################## End Paperclip ##############################
   when 'prawn'
     ############################## Prawn ##############################
     if yes?("Would you like to install Prawn? (yes/no)")
@@ -187,7 +188,7 @@ case input.downcase.to_s
       eos
 
     end
-    ############################## End Prawn ##############################
+  ############################## End Prawn ##############################
   when 'capistrano'
     ############################## Capistrano ##############################
     if yes?("Would you like to install Capistrano? (yes/no)")
@@ -268,7 +269,7 @@ set :deploy_to, "/var/www/#{app_name}/production"
       eos
 
     end
-    ############################## End Capistrano ##############################
+  ############################## End Capistrano ##############################
   when 'whenever'
     ############################## Whenever ##############################
     if yes?("Would you like to install Whenever? (yes/no)")
@@ -294,7 +295,7 @@ set :deploy_to, "/var/www/#{app_name}/production"
       eos
 
     end
-    ############################## End Whenever ##############################
+  ############################## End Whenever ##############################
   when 'font-awesome-sass'
     ############################## font-awesome-sass ##############################
     if yes?("Would you like to install font-awesome-sass? (yes/no)")
@@ -325,11 +326,201 @@ set :deploy_to, "/var/www/#{app_name}/production"
       eos
 
     end
-    ############################## End font-awesome-sass ##############################
+  ############################## End font-awesome-sass ##############################
+  when 'jquery-datatables-rails'
+    ############################## jquery-datatables-rails ##############################
+    if yes?("Would you like to install jquery-datatables-rails? (yes/no)")
+
+      # Gems
+      gem 'jquery-datatables-rails', '~> 3.4.0'
+
+      # install gems
+      run 'bundle install'
+
+      # Setup
+      # run 'rails generate jquery:datatables:install bootstrap3'
+
+      # inject_into_file 'app/assets/javascripts/application.js', :after => "//= require bootstrap-sprockets" do
+      #   "\n//= require dataTables/jquery.dataTables\n//= require dataTables/bootstrap/3/jquery.dataTables.bootstrap\n"
+      # end
+      #
+      # inject_into_file 'app/assets/stylesheets/application.scss', :after => "@import \"bootstrap\";" do
+      #   "\n@import \"dataTables/bootstrap/3/jquery.dataTables.bootstrap\";"
+      # end
+
+      append_file 'app/assets/javascripts/application.js' do
+        <<-EOF
+        
+//= require dataTables/jquery.dataTables
+//= require dataTables/bootstrap/3/jquery.dataTables.bootstrap
+        EOF
+      end
+
+      append_file 'app/assets/stylesheets/application.scss' do
+        <<-EOF
+        
+@import "dataTables/bootstrap/3/jquery.dataTables.bootstrap";
+        EOF
+      end
+
+      # app/datatables
+      if yes?("Do you want to create app/datatables? (yes/no)")
+        unless File.exists?("app/datatables")
+          Dir.mkdir("app/datatables")
+          Dir.mkdir("app/datatables/ExempleUser")
+
+          file "app/datatables/application_datatable.rb", <<-END
+class ApplicationDatatable
+  delegate :params, to: :@view
+  delegate :link_to, to: :@view
+
+  def initialize(view)
+    @view = view
+  end
+
+  def as_json(options = {})
+    {
+      recordsTotal: count,
+      recordsFiltered: total_entries,
+      data: data
+    }
+  end
+
+
+private
+
+  def page
+    params[:start].to_i / per_page + 1
+  end
+
+  def per_page
+    params[:length].to_i > 0 ? params[:length].to_i : 10
+  end
+
+  def sort_column
+    columns[params[:order]['0'][:column].to_i]
+  end
+
+  def sort_direction
+    params[:order]['0'][:dir] == "desc" ? "desc" : "asc"
+  end
+end
+          END
+
+          file "app/datatables/ExempleUser/index.html.erb", <<-END
+# app/views/users/index.html.erb
+<%= content_tag :table, role: :datatable, data: { url: users_path(format: :json)} do %>
+  <thead>...</thead>
+  <tbody></tbody>
+<% end %>
+          END
+
+          file "app/datatables/ExempleUser/user_controller.rb", <<-END
+# app/controllers/user_controller.rb
+  def index
+    respond_to do |format|
+      format.html
+      format.json { render json: UsersDatatable.new(view_context) }
+    end
+  end
+          END
+
+          file "app/datatables/ExempleUser/user_datatable.rb", <<-END
+# app/datatables/user_datatable.rb
+class UsersDatatable < ApplicationDatatable
+  delegate :edit_user_path, to: :@view
+
+  private
+
+  def data
+    users.map do |user|
+      [].tap do |column|
+        column << user.first_name
+        column << user.last_name
+        column << user.email
+        column << user.phone_number
+
+        links = []
+        links << link_to('Show', user)
+        links << link_to('Edit', edit_user_path(user))
+        links << link_to('Destroy', user, method: :delete, data: { confirm: 'Are you sure?' })
+        column << links.join(' | ')
+      end
+    end
+  end
+
+  def count
+    User.count
+  end
+
+  def total_entries
+    users.total_count
+    # will_paginate
+    # users.total_entries
+  end
+
+  def users
+    @users ||= fetch_users
+  end
+
+  def fetch_users
+    search_string = []
+    columns.each do |term|
+      search_string << "\#{term} like :search\"
+    end
+
+    # will_paginate
+    # users = User.page(page).per_page(per_page)
+    users = User.order("\#{sort_column} \#{sort_direction}\")
+    users = users.page(page).per(per_page)
+    users = users.where(search_string.join(' or '), search: "%\#{params[:search][:value]}%\")
+  end
+
+  def columns
+    %w(first_name last_name email phone_number)
+  end
+end
+          END
+
+          file "app/datatables/ExempleUser/application.js", <<-END
+// app/assets/javascripts/application.js
+//= require jquery
+//= require datatables
+
+// ...
+
+$(document).on('turbolinks:load', function(){
+  $("table[role='datatable']").each(function(){
+    $(this).DataTable({
+      processing: true,
+      serverSide: true,
+      ajax: $(this).data('url')
+    });
+  });  
+})
+          END
+
+        end
+      end
+
+
+      # Git
+      if yes?("Do you want commit jquery-datatables-rails? (yes/no)")
+        git :add => "."
+        git :commit => "-a -m 'Adding jquery-datatables-rails gem'"
+      end
+
+      say <<-eos
+  ============================================================================
+  Your jquery-datatables-rails is now available.
+      eos
+
+    end
+  ############################## End jquery-datatables-rails ##############################
   else
     say <<-eos
-    
-  #{input} is not name of gem.
+
+#{input} is not name of gem.
 
     eos
 
