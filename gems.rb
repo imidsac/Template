@@ -2,8 +2,10 @@ gems_list = [
     "Devise",
     "Cancancan",
     "Bootstrap-sass",
-    "font-awesome-sass",
-    "jquery-datatables-rails",
+    "Bootswatch-rails",
+    "Font-awesome-sass",
+    "Jquery-datatables-rails",
+    "Bootstrap_form",
     "Paperclip",
     "Prawn",
     "Capistrano",
@@ -286,7 +288,7 @@ set :deploy_to, "/var/www/#{app_name}/production"
       # Git
       if yes?("Do you want commit Whenever? (yes/no)")
         git :add => "."
-        git :commit => "-a -m 'Adding Whenever'"
+        git :commit => "-a -m 'Adding Whenever gem'"
       end
 
       say <<-eos
@@ -517,6 +519,85 @@ $(document).on('turbolinks:load', function(){
 
     end
   ############################## End jquery-datatables-rails ##############################
+  when 'bootstrap_form'
+    ############################## bootstrap_form ##############################
+    if yes?("Would you like to install rails-bootstrap_form? (yes/no)")
+
+      # Gems
+      gem 'bootstrap_form'
+
+      # install gems
+      run 'bundle install'
+
+      # Stup
+      append_file 'app/assets/stylesheets/application.scss' do
+        <<-EOF
+        
+@import "rails_bootstrap_forms";
+        EOF
+      end
+
+      # Git
+      if yes?("Do you want commit bootstrap_form? (yes/no)")
+        git :add => "."
+        git :commit => "-a -m 'Adding bootstrap_form gem'"
+      end
+
+      say <<-eos
+  ============================================================================
+  Your bootstrap_form is now available.
+      eos
+
+    end
+  ############################## End bootstrap_form ##############################
+  when 'bootswatch-rails'
+    ############################## bootswatch-rails ##############################
+    if yes?("Would you like to install rails-bootstrap_form? (yes/no)")
+
+      # Gems
+      gem 'bootswatch-rails'
+
+      # install gems
+      run 'bundle install'
+
+      # Stup
+      append_file 'app/assets/stylesheets/application.scss' do
+        <<-EOF
+// Example using 'Cerulean' bootswatch
+
+//Import bootstrap-sprockets
+@import "bootstrap-sprockets";
+
+// Import cerulean variables
+@import "bootswatch/cerulean/variables";
+
+// Then bootstrap itself
+@import "bootstrap";
+
+// Bootstrap body padding for fixed navbar
+body { padding-top: 60px; }
+
+// And finally bootswatch style itself
+@import "bootswatch/cerulean/bootswatch";
+
+// Whatever application styles you have go last
+// @import "base";
+        EOF
+      end
+
+      # Git
+      if yes?("Do you want commit bootswatch-rails? (yes/no)")
+        git :add => "."
+        git :commit => "-a -m 'Adding bootswatch-rails gem'"
+      end
+
+      say <<-eos
+  ============================================================================
+  Your bootswatch-rails is now available.
+      eos
+
+    end
+  ############################## End bootswatch-rails ##############################
   else
     say <<-eos
 
