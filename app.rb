@@ -70,6 +70,7 @@ after_bundle do
   git :config => "--global user.name imidsac"
   git :init
 
+  ############################### GITIGNORE #############################
   file '.gitignore', <<-END
 *.rbc
 capybara-*.html
@@ -117,25 +118,26 @@ bower.json
 /.idea/
   END
 
+  ############################### RECIPES FOLDER #############################
   unless File.exists?("config/recipes")
     Dir.mkdir("config/recipes")
 
     file "config/recipes/#{app_name}.sql", <<-END
     END
 
-    file "config/recipes/nginx.conf", <<-END
+    file "config/recipes/nginx-staging.conf", <<-END
 ##
-# #{app_name.upcase}
+# #{app_name.upcase}_STAGING
 #
 server {
     listen 80;
     #server_name  somename  alias  another.alias;
     server_name #{app_name}.com;
 
-    access_log /var/log/nginx/#{app_name}.access.log;
-    error_log /var/log/nginx/#{app_name}.error.log;
+    access_log /var/log/nginx/#{app_name}_staging.access.log;
+    error_log /var/log/nginx/#{app_name}_staging.error.log;
 
-    root /var/www/#{app_name}/production/current/public;
+    root /var/www/#{app_name}/staging/current/public;
     index index.html;
     passenger_enabled on;
     passenger_app_env staging;
@@ -144,7 +146,7 @@ server {
     error_page 503 @503;
 
     # Return a 503 error if the maintenance page exists.
-    if (-f /var/www/#{app_name}/shared/public/system/maintenance.html) {
+    if (-f /var/www/#{app_name}/staging/shared/public/system/maintenance.html) {
       return 503;
     }
 
@@ -155,7 +157,45 @@ server {
       }
 
       # Set root to the shared directory.
-      root /var/www/#{app_name}/shared/public;
+      root /var/www/#{app_name}/staging/shared/public;
+      rewrite ^(.*)$ /system/maintenance.html break;
+    }
+}
+    END
+
+    file "config/recipes/nginx-production.conf", <<-END
+##
+# #{app_name.upcase}_PRODUCTION
+#
+server {
+    listen 80;
+    #server_name  somename  alias  another.alias;
+    server_name #{app_name}.com;
+
+    access_log /var/log/nginx/#{app_name}_production.access.log;
+    error_log /var/log/nginx/#{app_name}_production.error.log;
+
+    root /var/www/#{app_name}/production/current/public;
+    index index.html;
+    passenger_enabled on;
+    passenger_app_env staging;
+    client_max_body_size 10M;
+
+    error_page 503 @503;
+
+    # Return a 503 error if the maintenance page exists.
+    if (-f /var/www/#{app_name}/production/shared/public/system/maintenance.html) {
+      return 503;
+    }
+
+    location @503 {
+      # Serve static assets if found.
+      if (-f $request_filename) {
+        break;
+      }
+
+      # Set root to the shared directory.
+      root /var/www/#{app_name}/production/shared/public;
       rewrite ^(.*)$ /system/maintenance.html break;
     }
 }
@@ -174,9 +214,59 @@ export STAGING_PASSWORD=""
     END
   end
 
+  ############################### ADMIN AREA #############################
+
+  unless File.exists?("app/assets/javascripts/admin")
+    Dir.mkdir("app/assets/javascripts/admin")
+    Dir.mkdir("app/assets/javascripts/common")
+    run 'cp app/assets/javascripts/application.js app/assets/javascripts/admin/application.js'
+  end
+  unless File.exists?("app/assets/stylesheets/admin")
+    Dir.mkdir("app/assets/stylesheets/admin")
+    Dir.mkdir("app/assets/stylesheets/common")
+    run 'cp app/assets/stylesheets/application.scss app/assets/stylesheets/admin/application.scss'
+  end
+  unless File.exists?("app/controllers/admin")
+    Dir.mkdir("app/controllers/admin")
+    run 'cp app/controllers/application_controller.rb app/controllers/admin/application_controller.rb'
+  end
+  unless File.exists?("app/views/admin")
+    Dir.mkdir("app/views/admin")
+    Dir.mkdir("app/views/layouts/admin")
+    Dir.mkdir("app/views/common")
+    Dir.mkdir("app/views/layouts/partials")
+    run 'cp app/views/layouts/application.html.erb app/views/layouts/admin/application.html.erb'
+    file "app/views/layouts/partials/_public_header.html.erb", <<-END
+    END
+
+    file "app/views/layouts/partials/_admin_header.html.erb", <<-END
+    END
+
+    file "app/views/layouts/partials/_msg.html.erb", <<-END
+<div class="row">
+  <div class="col-xs-10 col-xs-offset-1">
+    <% flash.each do |name, msg| %>
+        <div class='alert alert-<%="\#{name}"\ %>'>
+          <a href="#" class="close" data-dismiss="alert">&#215;</a>
+          <%= content_tag :div, msg, :id => "flash_\#{name}"\ if msg.is_a?(String) %>
+        </div>
+    <% end %>
+  </div>
+</div>
+    END
+
+    file "app/views/layouts/partials/_footer.html.erb", <<-END
+    END
+  end
+
+
   if yes?("Do you want commit? (yes/no)")
     git :add => "."
-    git :commit => "-a -m 'initial commit'"
+    git :commit => "-a -m 'New app'"
+  end
+
+  if yes?("Do you want init git flow? (yes/no)")
+    git :flow => "init"
   end
 
   say <<-eos
