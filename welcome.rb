@@ -55,7 +55,7 @@ end
 end
 
 
-if yes?("Do you want commit Welcome page? (yes/no)")
+if yes?("Do you want commit Welcome page? [yes/no]")
   git :add => "."
   git :commit => "-a -m 'Adding Welcome page'"
 end

@@ -5,7 +5,7 @@ create_file ".ruby-version", "#{ruby_version_name}"
 
 run "rvm #{ruby_version_name} gemset list"
 
-if yes?("Do you want to create new gemset? (yes/no)")
+if yes?("Do you want to create new gemset? [yes/no]")
   name = ask("Your new gemset name?")
   run "rvm #{ruby_version_name} gemset create #{name}"
 end
@@ -62,7 +62,7 @@ staging:
 "))
 
 # Create db
-rake "db:create" if yes?("Do you want to create db? (yes/no)")
+rake "db:create" if yes?("Do you want to create db? [yes/no]")
 
 # setup git and initial commit
 after_bundle do
@@ -224,11 +224,17 @@ export STAGING_PASSWORD=""
   unless File.exists?("app/assets/stylesheets/admin")
     Dir.mkdir("app/assets/stylesheets/admin")
     Dir.mkdir("app/assets/stylesheets/common")
-    run 'cp app/assets/stylesheets/application.scss app/assets/stylesheets/admin/application.scss'
+    run 'cp app/assets/stylesheets/application.css app/assets/stylesheets/admin/application.css'
   end
   unless File.exists?("app/controllers/admin")
     Dir.mkdir("app/controllers/admin")
     run 'cp app/controllers/application_controller.rb app/controllers/admin/application_controller.rb'
+
+    # Edit application_controller.rb
+    File.write("app/controllers/admin/application_controller.rb",
+               File.open("app/controllers/admin/application_controller.rb",
+                         &:read).gsub("class ApplicationController < ActionController::Base", "class Admin::ApplicationController < ActionController::Base"))
+
   end
   unless File.exists?("app/views/admin")
     Dir.mkdir("app/views/admin")
@@ -260,12 +266,12 @@ export STAGING_PASSWORD=""
   end
 
 
-  if yes?("Do you want commit? (yes/no)")
+  if yes?("Do you want commit? [yes/no]")
     git :add => "."
     git :commit => "-a -m 'New app'"
   end
 
-  if yes?("Do you want init git flow? (yes/no)")
+  if yes?("Do you want init git flow? [yes/no]")
     git :flow => "init"
   end
 
