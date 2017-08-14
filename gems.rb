@@ -168,10 +168,12 @@ puts "===> Sample date have been set in DB  Users!"
       END
 
       # Edit app/assets/javascripts/application.js
-      file 'app/assets/javascripts/application.js', <<-END
+      append_file 'app/assets/javascripts/application.js' do
+        <<-END
 //= require jquery
 //= require bootstrap-sprockets
-      END
+        END
+      end
 
       if yes?("Would you like to install Bootstrap-sass for admin area? [yes/no]")
         # Setup
@@ -670,7 +672,6 @@ body { padding-top: 60px; }
 
     end
   ############################## End bootswatch-rails ##############################
-
   when 'globalize'
     ############################## globalize ##############################
     if yes?("Would you like to install globalize? [yes/no]")
@@ -696,7 +697,6 @@ body { padding-top: 60px; }
 
     end
   ############################## globalize ##############################
-
   when 'geocoder'
     ############################## geocoder ##############################
     if yes?("Would you like to install geocoder? [yes/no]")
@@ -722,7 +722,6 @@ body { padding-top: 60px; }
 
     end
   ############################## geocoder ##############################
-
   when 'will_paginate'
     ############################## will_paginate ##############################
     if yes?("Would you like to install will_paginate? [yes/no]")
@@ -748,7 +747,6 @@ body { padding-top: 60px; }
 
     end
   ############################## will_paginate ##############################
-
   when 'bh'
     ############################## Bh ##############################
     if yes?("Would you like to install Bh? [yes/no]")
@@ -774,7 +772,6 @@ body { padding-top: 60px; }
 
     end
   ############################## Bh ##############################
-
   when 'simple_form'
     ############################## Simple_form ##############################
     if yes?("Would you like to install Simple_form? [yes/no]")
@@ -802,7 +799,6 @@ body { padding-top: 60px; }
 
     end
   ############################## Simple_form ##############################
-
   when 'rails_layout'
     ############################## rails_layout ##############################
     if yes?("Would you like to install rails_layout? [yes/no]")
@@ -830,40 +826,98 @@ body { padding-top: 60px; }
 
     end
   ############################## rails_layout ##############################
-
   when 'wysiwyg-rails'
     ############################## wysiwyg-rails ##############################
     if yes?("Would you like to install wysiwyg-rails? [yes/no]")
 
       # Gems
-      # gem "wysiwyg-rails"
+      gem "wysiwyg-rails"
 
       # install gems
-      # run 'bundle install'
+      run 'bundle install'
 
       # Stup
-      #       append_file 'app/assets/stylesheets/application.scss' do
-      #         <<-EOF
-      # @import "froala_editor.min.css";
-      # @import "froala_style.min.css";
-      # @import "themes/dark.min.css";
-      #         EOF
-      #       end
+      append_file 'app/assets/stylesheets/application.scss' do
+        <<-EOF
+        
+@import "froala_editor.min.css";
+@import "froala_style.min.css";
+@import "themes/dark.min.css";
+
+@import 'plugins/char_counter.min.css';
+@import 'plugins/code_view.min.css';
+@import 'plugins/colors.min.css';
+@import 'plugins/emoticons.min.css';
+@import 'plugins/file.min.css';
+@import 'plugins/fullscreen.min.css';
+@import 'plugins/help.min.css';
+@import 'plugins/image_manager.min.css';
+@import 'plugins/image.min.css';
+@import 'plugins/line_breaker.min.css';
+@import 'plugins/quick_insert.min.css';
+@import 'plugins/special_characters.min.css';
+@import 'plugins/table.min.css';
+@import 'plugins/video.min.css';
+        EOF
+      end
+
+      append_file 'app/assets/javascripts/application.js' do
+        <<-EOF
+        
+//= require froala_editor.min.js
+
+// Include other plugins.
+//= require plugins/align.min.js
+//= require plugins/char_counter.min.js
+//= require plugins/code_beautifier.min.js
+//= require plugins/code_view.min.js
+//= require plugins/colors.min.js
+//= require plugins/emoticons.min.js
+//= require plugins/entities.min.js
+//= require plugins/file.min.js
+//= require plugins/font_family.min.js
+//= require plugins/font_size.min.js
+//= require plugins/fullscreen.min.js
+//= require plugins/help.min.js
+//= require plugins/image.min.js
+//= require plugins/image_manager.min.js
+//= require plugins/inline_style.min.js
+//= require plugins/line_breaker.min.js
+//= require plugins/link.min.js
+//= require plugins/lists.min.js
+//= require plugins/paragraph_format.min.js
+//= require plugins/paragraph_style.min.js
+//= require plugins/print.min.js
+//= require plugins/quick_insert.min.js
+//= require plugins/quote.min.js
+//= require plugins/save.min.js
+//= require plugins/table.min.js
+//= require plugins/special_characters.min.js
+//= require plugins/url.min.js
+//= require plugins/video.min.js
+        EOF
+      end
 
       # Git
-      # if yes?("Do you want commit rails_layout? [yes/no]")
-      #   git :add => "."
-      #   git :commit => "-a -m 'Adding rails_layout gem'"
-      # end
+      if yes?("Do you want commit rails_layout? [yes/no]")
+        git :add => "."
+        git :commit => "-a -m 'Adding wysiwyg-rails gem'"
+      end
 
       say <<-eos
   ============================================================================
   Your wysiwyg-rails is now available.
+
+  <script>
+      $(function() {
+          $('.froala-editor').froalaEditor()
+      });
+  </script>
+
       eos
 
     end
   ############################## wysiwyg-rails ##############################
-
   else
     say <<-eos
 
