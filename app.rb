@@ -293,6 +293,34 @@ namespace :initial do
 end
     END
 
+  file "lib/tasks/initial_pro.rake", <<-END
+# encoding: utf-8
+
+namespace :initial do
+  desc "Fill database with sample datara"
+  task create: :environment do
+
+    Rake::Task['db:drop'].invoke
+    puts "===> db drop!"
+    Rake::Task['db:create'].invoke
+    puts "===> db create!"
+    Rake::Task['db:migrate'].invoke
+    puts "===> db migrate!"
+    # Rake::Task['db:seed'].invoke
+    # puts "===> db data seed!"
+    # sh "psql -d photo_development -f config/recipes/labo.sql"
+    # puts "===> db Labo.sql!"
+    # Rake::Task['assets:precompile'].invoke
+    # puts "===> Assets precompile !"
+    # Rake::Task['middleware'].invoke
+    # puts "===> Middleware!"
+
+
+  end
+
+end
+    END
+
   if yes?("Do you want commit? [yes/no]")
     git :add => "."
     git :commit => "-a -m 'New app'"
