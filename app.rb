@@ -35,19 +35,19 @@ default: &default
 
 development:
   <<: *default
-  database: #{app_name}_development
+  database: #{app_name.downcase}_development
 
 test:
   <<: *default
-  database: #{app_name}_test
+  database: #{app_name.downcase}_test
 
 staging:
   <<: *default
-  database: #{app_name}_staging
+  database: #{app_name.downcase}_staging
 
 production:
   <<: *default
-  database: #{app_name}_production
+  database: #{app_name.downcase}_production
 END
 
 # Edit Secrets.yml
@@ -122,7 +122,7 @@ bower.json
   unless File.exists?("config/recipes")
     Dir.mkdir("config/recipes")
 
-    file "config/recipes/#{app_name}.sql", <<-END
+    file "config/recipes/#{app_name.downcase}.sql", <<-END
     END
 
     file "config/recipes/nginx-staging.conf", <<-END
@@ -132,12 +132,12 @@ bower.json
 server {
     listen 80;
     #server_name  somename  alias  another.alias;
-    server_name #{app_name}.com;
+    server_name #{app_name.downcase}.com;
 
-    access_log /var/log/nginx/#{app_name}_staging.access.log;
-    error_log /var/log/nginx/#{app_name}_staging.error.log;
+    access_log /var/log/nginx/#{app_name.downcase}_staging.access.log;
+    error_log /var/log/nginx/#{app_name.downcase}_staging.error.log;
 
-    root /var/www/#{app_name}/staging/current/public;
+    root /var/www/#{app_name.upcase}/staging/current/public;
     index index.html;
     passenger_enabled on;
     passenger_app_env staging;
@@ -146,7 +146,7 @@ server {
     error_page 503 @503;
 
     # Return a 503 error if the maintenance page exists.
-    if (-f /var/www/#{app_name}/staging/shared/public/system/maintenance.html) {
+    if (-f /var/www/#{app_name.upcase}/staging/shared/public/system/maintenance.html) {
       return 503;
     }
 
@@ -157,7 +157,7 @@ server {
       }
 
       # Set root to the shared directory.
-      root /var/www/#{app_name}/staging/shared/public;
+      root /var/www/#{app_name.upcase}/staging/shared/public;
       rewrite ^(.*)$ /system/maintenance.html break;
     }
 }
@@ -170,21 +170,21 @@ server {
 server {
     listen 80;
     #server_name  somename  alias  another.alias;
-    server_name #{app_name}.com;
+    server_name #{app_name.downcase}.com;
 
-    access_log /var/log/nginx/#{app_name}_production.access.log;
-    error_log /var/log/nginx/#{app_name}_production.error.log;
+    access_log /var/log/nginx/#{app_name.downcase}_production.access.log;
+    error_log /var/log/nginx/#{app_name.downcase}_production.error.log;
 
-    root /var/www/#{app_name}/production/current/public;
+    root /var/www/#{app_name.upcase}/production/current/public;
     index index.html;
     passenger_enabled on;
-    passenger_app_env staging;
+    passenger_app_env production;
     client_max_body_size 10M;
 
     error_page 503 @503;
 
     # Return a 503 error if the maintenance page exists.
-    if (-f /var/www/#{app_name}/production/shared/public/system/maintenance.html) {
+    if (-f /var/www/#{app_name.upcase}/production/shared/public/system/maintenance.html) {
       return 503;
     }
 
@@ -195,7 +195,7 @@ server {
       }
 
       # Set root to the shared directory.
-      root /var/www/#{app_name}/production/shared/public;
+      root /var/www/#{app_name.upcase}/production/shared/public;
       rewrite ^(.*)$ /system/maintenance.html break;
     }
 }
@@ -206,7 +206,7 @@ export #{app_name.upcase}_PRODUCTION_SECRET_KEY_BASE=""
 export #{app_name.upcase}_STAGING_SECRET_KEY_BASE=""
 
 # SECURITY
-export DATABASE_PASSWORD=""
+export DATABASE_PASSWORD="MOImeme"
 export USERNAME=imidsac
 export USER=imidsac
 export STAGING_USERNAME=""
@@ -265,12 +265,128 @@ export STAGING_PASSWORD=""
     END
   end
 
-    file "lib/tasks/initial.rake", <<-END
+  file "lib/tasks/db.rake", <<-END
+  
+namespace :db do
+  DUMP_FMT = 'p' # 'c', 'p', 't', 'd'
+
+  desc 'Dumps the database to backups'
+  task sql_dump: :environment do
+    dump_sfx = suffix_for_format(DUMP_FMT)
+    backup_dir = backup_directory(true)
+    cmd = nil
+    with_config do |app, host, db, user|
+      file_name = Time.now.strftime("%Y%m%d%H%M%S") + "_" + db + '.' + dump_sfx
+      cmd = "pg_dump -F \#{DUMP_FMT} -U \#{user} -v --no-owner -h \#{host} -d \#{db} -f \#{backup_dir}/\#{file_name}"
+    end
+    puts cmd
+    exec cmd
+  end
+
+  desc 'Dumps a specific table to backups'
+  task sql_dump_table: :environment do |_task, args|
+    table_name = ENV['table']
+    fail ArgumentError unless table_name
+    dump_sfx = suffix_for_format(DUMP_FMT)
+    backup_dir = backup_directory(true)
+    cmd = nil
+    with_config do |app, host, db, user|
+      file_name = Time.now.strftime("%Y%m%d%H%M%S") + "_" + db + "_\#{table_name.parameterize.underscore}" + '.' + dump_sfx
+      cmd = "pg_dump --table \#{table_name} --no-owner -F \#{DUMP_FMT} -U \#{user} -v -h \#{host} -d \#{db} -f \#{backup_dir}/\#{file_name}"
+    end
+    puts cmd
+    exec cmd
+  end
+
+  desc 'Show the existing database backups'
+  task list_backups: :environment do
+    backup_dir = backup_directory
+    puts "\#{backup_dir}"
+    exec "/bin/ls -lt \#{backup_dir}"
+  end
+
+  desc 'Restores the database from a backup using PATTERN'
+  task :sql_restore, [:pat] => :environment do |task,args|
+    if args.pat.present?
+      cmd = nil
+      with_config do |app, host, db, user|
+        backup_dir = backup_directory
+        files = Dir.glob("\#{backup_dir}/*\#{args.pat}*")
+        case files.size
+          when 0
+            puts "No backups found for the pattern '\#{args.pat}'"
+          when 1
+            file = files.first
+            fmt = format_for_file file
+            if fmt.nil?
+              puts "No recognized dump file suffix: \#{file}"
+            else
+              cmd = "pg_restore -F \#{fmt} -v -c -C \#{file}"
+            end
+          else
+            puts "Too many files match the pattern '\#{args.pat}':"
+            puts ' ' + files.join("\n ")
+            puts "Try a more specific pattern"
+        end
+      end
+      unless cmd.nil?
+        Rake::Task["db:drop"].invoke
+        Rake::Task["db:create"].invoke
+        puts cmd
+        exec cmd
+      end
+    else
+      puts 'Please pass a pattern to the task'
+    end
+  end
+
+  private
+
+  def suffix_for_format suffix
+    case suffix
+      when 'c' then 'dump'
+      when 'p' then 'sql'
+      when 't' then 'tar'
+      when 'd' then 'dir'
+      else nil
+    end
+  end
+
+  def format_for_file file
+    case file
+      when /\.dump$/ then 'c'
+      when /\.sql$/  then 'p'
+      when /\.dir$/  then 'd'
+      when /\.tar$/  then 't'
+      else nil
+    end
+  end
+
+  def backup_directory(create=false)
+    backup_dir = "\#{Rails.root}/db/backups"
+    if create and not Dir.exists?(backup_dir)
+      puts "Creating \#{backup_dir} .."
+      Dir.mkdir(backup_dir)
+    end
+    backup_dir
+  end
+
+  def with_config
+    yield Rails.application.class.parent_name.underscore,
+        ActiveRecord::Base.connection_config[:host],
+        ActiveRecord::Base.connection_config[:database],
+        ActiveRecord::Base.connection_config[:username]
+  end
+end
+
+  END
+
+  file "lib/tasks/initial.rake", <<-END
 # encoding: utf-8
 
 namespace :initial do
-  desc "Fill database with sample datara"
-  task create: :environment do
+  desc "Fill database with sample data"
+  task init: :environment do
 
     Rake::Task['db:drop'].invoke
     puts "===> db drop!"
@@ -278,27 +394,11 @@ namespace :initial do
     puts "===> db create!"
     Rake::Task['db:migrate'].invoke
     puts "===> db migrate!"
-    # Rake::Task['db:seed'].invoke
-    # puts "===> db data seed!"
-    # sh "psql -d photo_development -f config/recipes/labo.sql"
-    # puts "===> db Labo.sql!"
-    # Rake::Task['assets:precompile'].invoke
-    # puts "===> Assets precompile !"
-    # Rake::Task['middleware'].invoke
-    # puts "===> Middleware!"
-
 
   end
 
-end
-    END
-
-  file "lib/tasks/initial_pro.rake", <<-END
-# encoding: utf-8
-
-namespace :initial do
-  desc "Fill database with sample datara"
-  task create: :environment do
+  desc "App vide"
+  task vide: :environment do
 
     Rake::Task['db:drop'].invoke
     puts "===> db drop!"
@@ -306,20 +406,43 @@ namespace :initial do
     puts "===> db create!"
     Rake::Task['db:migrate'].invoke
     puts "===> db migrate!"
-    # Rake::Task['db:seed'].invoke
-    # puts "===> db data seed!"
-    # sh "psql -d photo_development -f config/recipes/labo.sql"
-    # puts "===> db Labo.sql!"
+    Rake::Task['db:seed'].invoke
+    puts "===> db data seed!"
+    sh "psql -d #{app_name.downcase}_development -f config/recipes/#{app_name.downcase}.sql"
+    puts "===> db Function.sql!"
     # Rake::Task['assets:precompile'].invoke
     # puts "===> Assets precompile !"
     # Rake::Task['middleware'].invoke
     # puts "===> Middleware!"
 
+  end
+
+desc "App existe"
+  task existe: :environment do
+
+    name = Time.now.strftime "%d%m%Y%H%M%S"
+
+    sh "pg_dump --data-only -d #{app_name.downcase}_development > /tmp/#{app_name.downcase}_development_\#{name}.sql"
+    puts "===> DUMP DATABASE !"
+    sh "PGPASSWORD=\#{ENV['DATABASE_PASSWORD']} psql -U imidsac -d template1 -c \\"ALTER DATABASE #{app_name.downcase}_development RENAME TO \#{name}_#{app_name.downcase}_development;\\""
+    puts "===> ALTER DATABASE !"
+    Rake::Task['db:create'].invoke
+    puts "===> CREATE DATABASE !"
+    Rake::Task['db:migrate'].invoke
+    puts "===> MIGRATE DATABASE !"
+    sh "PGPASSWORD=\#{ENV['DATABASE_PASSWORD']} psql -U imidsac -d template1 -c \\"ALTER DATABASE #{app_name.downcase}_development SET datestyle TO 'ISO, european';\\""
+    puts "===> SET datestyle TO 'ISO, european' !"
+    # sh "sudo service postgresql restart"
+    # puts "===> RESTART SERVICE POSTGRESQL !"
+    sh "PGPASSWORD=\#{ENV['DATABASE_PASSWORD']} psql -d #{app_name.downcase}_development -f /tmp/\#{name}_#{app_name.downcase}_development.sql"
+    puts "===> RESTORE DATABASE !"
+    sh "psql -d #{app_name.downcase}_development -f config/recipes/#{app_name.downcase}.sql"
+    puts "===> db #{app_name.downcase}.sql!"
 
   end
 
 end
-    END
+  END
 
   if yes?("Do you want commit? [yes/no]")
     git :add => "."
