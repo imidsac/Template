@@ -2,6 +2,7 @@ gems_list = [
     "Devise",
     "Cancancan",
     "Bootstrap-sass",
+    "Jquery-ui-sass-rails",
     "Bootstrap-social-rails",
     "Bootswatch-rails",
     "Font-awesome-sass",
@@ -344,6 +345,40 @@ set :deploy_to, "/var/www/#{app_name}/production"
 
       # Setup
       run 'wheneverize .'
+
+      # Edit config/schedule.rb
+      append_file 'config/schedule.rb' do
+        <<-END
+      
+eval %Q(module ::Rails
+  def self.env
+    "\#{@environment}\" || ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
+  end
+end
+)
+
+set :output, "\#{path}/log/cron_log.log\"
+
+case @environment
+
+  when 'development'
+    # every 2.month, :at => '0:00 am' do
+    #   command "backup perform -t #{app_name}_development_backup"
+    # end
+    
+  when 'staging'
+    # every 2.month, :at => '0:00 am' do
+    #   command "backup perform -t #{app_name}_staging_backup"
+    # end
+    
+  when 'production'
+    # every :reboot do
+    #   reboot "backup perform -t #{app_name}_production_backup"
+    # end
+
+end
+        END
+      end
 
       # Git
       if yes?("Do you want commit Whenever? [yes/no]")
