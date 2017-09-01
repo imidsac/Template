@@ -422,7 +422,7 @@ desc "App existe"
 
     name = Time.now.strftime "%d%m%Y%H%M%S"
 
-    sh "pg_dump --data-only -d #{app_name.downcase}_development > /tmp/#{app_name.downcase}_development_\#{name}.sql"
+    sh "pg_dump --data-only -d #{app_name.downcase}_development > /tmp/\#{name}_#{app_name.downcase}_development.sql"
     puts "===> DUMP DATABASE !"
     sh "PGPASSWORD=\#{ENV['DATABASE_PASSWORD']} psql -U imidsac -d template1 -c \\"ALTER DATABASE #{app_name.downcase}_development RENAME TO \#{name}_#{app_name.downcase}_development;\\""
     puts "===> ALTER DATABASE !"
@@ -445,13 +445,16 @@ end
   END
 
   if yes?("Do you want commit? [yes/no]")
+
     git :add => "."
     git :commit => "-a -m 'New app'"
+
+    if yes?("Do you want init git flow? [yes/no]")
+      git :flow => "init"
+    end
+
   end
 
-  if yes?("Do you want init git flow? [yes/no]")
-    git :flow => "init"
-  end
 
   say <<-eos
   ============================================================================
