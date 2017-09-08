@@ -1,0 +1,5 @@
+generate "scaffold subject name:string position:integer visible:boolean  user:references"
+generate "scaffold page subject:references name:string permalink:string position:integer visible:boolean user:references"
+generate "scaffold section page:references name:string position:integer visible:boolean content_type:string content:text user:references"
+generate "migration CreatePagesUsersJoin page:references user:references"
+generate "model SectionEdit section:references user:references"
