@@ -57,7 +57,7 @@ if yes?("Do you want to do scaffold for Education ? (yes/no)")
 
 
     if yes?("Do you want to create Scaffold for Inscriptions ? (yes/no)")
-      generate "scaffold", "enrollment school:references person_student_id:integer type_enroll:string num:string num_enroll:string school_year:references date_enroll:datetime"
+      generate "scaffold", "enrollment school:references person_student_id:integer type_enroll:string num:string num_enroll:string school_year:references date_enroll:datetime filiere:references grade:references"
 
       rails_command "db:migrate" if yes?("Do you want to migrate Incriptions ? (yes/no)")
 
