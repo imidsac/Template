@@ -29,7 +29,7 @@ default: &default
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   port: 5432
-  username: imidsac
+  username: <%= ENV["USER" ] %>
   password: <%= ENV["DATABASE_PASSWORD" ] %>
   host: localhost
 
@@ -212,6 +212,56 @@ export USER=imidsac
 export STAGING_USERNAME=""
 export STAGING_PASSWORD=""
     END
+
+
+    file "config/recipes/#{app_name.downcase}_backup.sh", <<-END
+#!/usr/bin/env bash
+
+SCRIPT_RUNNER=imidsac
+CAMPANY_NAME=Malinuse
+APP_FOLDER=management-dev_store
+ENV=production
+APP_PATH=/var/www/
+DATABASE=#{app_name.downcase}_$ENV
+DATABASE_USER=imidsac
+DATABASE_PASSWORD=walilahilhamdou
+NOW=$(date +%Y''%m''%d''%H''%M)
+backup_path=$(cd && pwd)/Backup_$CAMPANY_NAME
+
+echo -e "\n==> Creating backup dir..."
+cd && mkdir -p $backup_path && cd $backup_path && touch backup.log
+echo -e "==> done...\n"
+
+
+read -p 'Do you want to dump all data in '$DATABASE' ? [y/n]: ' answer
+# answer=$( echo "$answer" | tr -s '[:upper]' '[:lower]' )
+# answer = ${answer,,}
+if [ $answer == 'y' ]
+then
+echo -e "\n==> Starting pg_dump --data-only..."
+PGPASSWORD=$DATABASE_PASSWORD pg_dump --data-only -U $DATABASE_USER -d $DATABASE > $backup_path/${NOW}'_data_'${CAMPANY_NAME}.sql
+echo -e "==> done...\n"
+fi
+
+read -p 'Do you want to dump db '$DATABASE' ? [y/n]: ' answer
+
+if [ $answer == 'y' ]
+then
+echo -e "\n==> Starting pg_dump db '$DATABASE'..."
+PGPASSWORD=$DATABASE_PASSWORD pg_dump -U $DATABASE_USER -d $DATABASE > $backup_path/${NOW}'_db_'${CAMPANY_NAME}.sql
+echo -e "==> done...\n"
+fi
+
+read -p 'Do you want to copy '$APP_PATH/$ENV' ? [y/n]: ' answer
+
+if [ $answer == 'y' ]
+then
+echo -e "\n==> Starting copy '$APP_PATH/$ENV'..."
+sudo cp -rv $APP_PATH/$ENV $backup_path/
+echo -e "==> done...\n"
+fi
+    END
+
   end
 
   ############################### ADMIN AREA #############################
