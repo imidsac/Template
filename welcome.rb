@@ -20,7 +20,7 @@ end
 <h1>Welcome to #{app_name.capitalize}!</h1>
   CODE
 
-    File.write("config/routes.rb", File.open("config/routes.rb", &:read).gsub("end", "
+  File.write("config/routes.rb", File.open("config/routes.rb", &:read).gsub("end", "
   get '/:inconu' => 'welcome#inconu'
 end
 "))
@@ -43,6 +43,11 @@ class Admin::WelcomeController < Admin::ApplicationController
     #   @users_count= nil
     #   @posts_count = current_user.posts.all.count
     # end
+  end
+
+  def inconu
+    flash[:error] = "Page \#{params[:inconu]} does not exist"
+    redirect_to root_path
   end
 
 end
