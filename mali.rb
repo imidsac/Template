@@ -1,5 +1,5 @@
 if yes?("Do you want to create Scaffold for Religion and Ethnic ? (yes/no)")
-  generate "scaffold", "relition religion_name"
+  generate "scaffold", "religion religion_name"
   generate "scaffold", "ethnic ethnic_name"
 
   rails_command "db:migrate" if yes?("Do you want to migrate Religion and Ethnic ? (yes/no)")
@@ -45,7 +45,8 @@ if yes?("Do you want to do scaffold for Education ? (yes/no)")
 
     generate "scaffold", "cycle cycle_name"
     generate "scaffold", "level cycle:references level_name"
-    generate "scaffold", "filiere level:references filiere_name"
+    # generate "scaffold", "serie serie_name"
+    generate "scaffold", "filiere filiere_name"
 
     rails_command "db:migrate" if yes?("Do you want to migrate cycle, level and filiere ? (yes/no)")
 
@@ -57,7 +58,7 @@ if yes?("Do you want to do scaffold for Education ? (yes/no)")
 
 
     if yes?("Do you want to create Scaffold for Inscriptions ? (yes/no)")
-      generate "scaffold", "enrollment school:references person_student_id:integer type_enroll:string num:string num_enroll:string school_year:references date_enroll:datetime filiere:references grade:references"
+      generate "scaffold", "enrollment school:references person_student_id:integer type_enroll:string num:string num_enroll:string school_year:references date_enroll:datetime filiere:references grade:references options:hstore"
 
       rails_command "db:migrate" if yes?("Do you want to migrate Incriptions ? (yes/no)")
 
@@ -67,13 +68,15 @@ if yes?("Do you want to do scaffold for Education ? (yes/no)")
       end
     end
 
+
+
   if yes?("Do you want to create Scaffold for CV [experience, training, skills, leisureType, leisure] ? (yes/no)")
     generate "scaffold", "experience person:references experience_name"
     generate "scaffold", "training person:references training_name"
     generate "scaffold", "areasSkill  areas_skill_name"
     generate "scaffold", "skill person:references areas_skill:references skill_name"
     generate "scaffold", "leisureType leisure_type_name"
-    generate "scaffold", "leisure person:references leisur_type:references leisure_name"
+    generate "scaffold", "leisure person:references leisure_type:references leisure_name"
 
     rails_command "db:migrate" if yes?("Do you want to migrate CV [experience, training, skills, leisureType, leisure] ? (yes/no)")
 
