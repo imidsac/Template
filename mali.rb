@@ -25,7 +25,7 @@ if yes?("Do you want to create Scaffold for Region, cercle, commune and quartier
 end
 
 if yes?("Do you want to create Scaffold for Person (yes/no)")
-  generate "scaffold", "person first_name:string last_name:string middle_name:string sexe:string date_nai:datetime lieu_nai:string situation_family:string regime_matrimonial:string contact:hstore email:string address:string personId:hstore life:boolean"
+  generate "scaffold", "person first_name:string last_name:string middle_name:string sexe:string date_nai:datetime lieu_nai:string situation_family:string regime_matrimonial:string contacts:hstore address:string personId:hstore life:boolean"
 
   rails_command "db:migrate" if yes?("Do you want to migrate Person ? (yes/no)")
 
@@ -95,5 +95,58 @@ end
 
 ################## LABO PHOTO #######################
 if yes?("Do you want to do scaffold for Labo photo ? (yes/no)")
+
+  if yes?("Do you want to create Scaffold for Companies ? (yes/no)")
+    generate "scaffold", "company quartier:references name contacts:hstore address settings:hstore"
+    rails_command "db:migrate" if yes?("Do you want to migrate Companies ? (yes/no)")
+
+    if yes?("Do you want commit Companies ? (yes/no)")
+      git :add => "."
+      git :commit => "-a -m 'Adding scaffold for Companies'"
+    end
+  end
+
+  if yes?("Do you want to create Scaffold for Products ? (yes/no)")
+    generate "scaffold", "productType name"
+    generate "scaffold", "productField product_type:references name field_type requied:boolean "
+    generate "scaffold", "product product_type:references name reference:string characteristics:hstore 'active:boolean:true'"
+    rails_command "db:migrate" if yes?("Do you want to migrate Products ? (yes/no)")
+
+    if yes?("Do you want commit Products ? (yes/no)")
+      git :add => "."
+      git :commit => "-a -m 'Adding scaffold for Products'"
+    end
+  end
+
+  if yes?("Do you want to create Scaffold for Orders ? (yes/no)")
+    generate "scaffold", "order 'subtotal:decimal{12,3}' 'tax:decimal{12,3}' 'shipping:decimal{12,3}' 'total:decimal{12,3}' order_status:references"
+    generate "scaffold", "orderItem product:references order:references 'unit_price:decimal{12,3}' quantity:integer 'total_price:decimal{12,3}'"
+    rails_command "db:migrate" if yes?("Do you want to migrate Orders ? (yes/no)")
+
+    if yes?("Do you want commit Orders ? (yes/no)")
+      git :add => "."
+      git :commit => "-a -m 'Adding scaffold for Orders'"
+    end
+  end
+
+  if yes?("Do you want to create Scaffold for Payments ? (yes/no)")
+    generate "scaffold", "payment person:references order:references motif:string remboursement:boolean fidelity:boolean 'amount:decimal{12,3}'"
+    rails_command "db:migrate" if yes?("Do you want to migrate Payments ? (yes/no)")
+
+    if yes?("Do you want commit Payments ? (yes/no)")
+      git :add => "."
+      git :commit => "-a -m 'Adding scaffold for Payments'"
+    end
+  end
+
+  if yes?("Do you want to create Scaffold for Licences ? (yes/no)")
+    generate "scaffold", "licence company:references start "
+    rails_command "db:migrate" if yes?("Do you want to migrate Licences ? (yes/no)")
+
+    if yes?("Do you want commit Licences ? (yes/no)")
+      git :add => "."
+      git :commit => "-a -m 'Adding scaffold for Licences'"
+    end
+  end
 
 end
