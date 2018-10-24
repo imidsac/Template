@@ -1,5 +1,5 @@
 if yes?("Do you want to create Scaffold for Country, Region, cercle, commune and quartier ? (yes/no)")
-  generate "scaffold", "country country_name:string country_name_short:string position:integer code:string latitude:float longitude:float"
+  generate "scaffold", "country country_name:string country_name_short:string country_devise:string position:integer code:string latitude:float longitude:float"
   generate "scaffold", "region country:references region_name:string region_name_short:string position:integer code:string latitude:float longitude:float"
   generate "scaffold", "cercle region:references cercle_name:string cercle_name_short:string position:integer code:string latitude:float longitude:float"
   generate "scaffold", "commune cercle:references commune_name:string commune_name_short:string position:integer code:string latitude:float longitude:float"
@@ -11,7 +11,7 @@ if yes?("Do you want to create Scaffold for Country, Region, cercle, commune and
 
   if yes?("Do you want commit? (yes/no)")
     git :add => "."
-    git :commit => "-a -m 'Adding scaffold regions, cercles, communes and quartiers'"
+    git :commit => "-a -m 'Adding scaffold regions, cercles, communes, quartiers and agencies'"
   end
 end
 
@@ -147,4 +147,27 @@ if yes?("Do you want to do scaffold for Store ? (yes/no)")
     end
   end
 
+end
+
+
+
+if yes?("Do you want to do scaffold for Banks ? (yes/no)")
+    generate "scaffold", "BankAccount person:references account_number:string balance:decimal"
+    generate "scaffold", "AccountTransaction bank_account:references transaction_type:string transaction_number:string amount:decimal"
+    rails_command "db:migrate" if yes?("Do you want to migrate Banks ? (yes/no)")
+
+    if yes?("Do you want commit Banks ? (yes/no)")
+      git :add => "."
+      git :commit => "-a -m 'Adding scaffold for Banks'"
+    end
+end
+
+if yes?("Do you want to do scaffold for Fidelity ? (yes/no)")
+    generate "scaffold", "Fidelity person:references start_date:datetime start_order:integer end_date:datetime end_order:integer nombre_careau:decimal montant_careau:decimal bonus_careau:decimal total:decimal payee:decimal status:boolean"
+    rails_command "db:migrate" if yes?("Do you want to migrate Fidelity ? (yes/no)")
+
+    if yes?("Do you want commit Fidelity ? (yes/no)")
+      git :add => "."
+      git :commit => "-a -m 'Adding scaffold for Fidelity'"
+    end
 end
